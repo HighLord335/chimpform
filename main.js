@@ -1,39 +1,48 @@
-$(document).ready(function () {
-  var $form = $('#mc-embedded-subscribe-form')
-  if ($form.length > 0) {
-    $('form input[type="submit"]').bind('click', function (event) {
-      if (event) event.preventDefault()
-      register($form)
-    })
-  }
-})
+$(document).ready(function() {
+  $(".mc_embed_signup > form").submit(function(e) {
+    e.preventDefault(); // Prevent a new window from opening upon clicking 'Subscribe now' button
 
-function register($form) {
-  $('#mc-embedded-subscribe').val('Sending...');
-  $.ajax({
-    type: $form.attr('method'),
-    url: $form.attr('action'),
-    data: $form.serialize(),
-    cache: false,
-    dataType: 'json',
-    contentType: 'application/json; charset=utf-8',
-    error: function (err) { alert('Could not connect to the registration server. Please try again later.') },
-    success: function (data) {
-      $('#mc-embedded-subscribe').val('subscribe')
-      if (data.result === 'success') {
-        // Yeahhhh Success
-        console.log(data.msg)
-        $('#mce-EMAIL').css('borderColor', '#ffffff')
-        $('#subscribe-result').css('color', 'rgb(53, 114, 210)')
-        $('#subscribe-result').html('<p>Thank you for subscribing. We have sent you a confirmation email.</p>')
-        $('#mce-EMAIL').val('')
-      } else {
-        // Something went wrong, do something to notify the user.
-        console.log(data.msg)
-        $('#mce-EMAIL').css('borderColor', '#ff8282')
-        $('#subscribe-result').css('color', '#ff8282')
-        $('#subscribe-result').html('<p>' + data.msg.substring(4) + '</p>')
+    var validForm = true; // Set initial state of valid form to true
+    var inputArray = $(this).find("input.required"); // Find all required inputs and store them in array
+
+    // Simple check for all inputs to make sure the value is not empty
+    inputArray.each(function(item) {
+      if ($(this).val() == "") {
+        validForm = false;
+        $(".mc_embed_signup .error-message").show(); // if empty, show error message
+        $('.mc_embed_signup input.required').addClass('error'); // and highlight empty inputs
       }
+    });
+
+    // Everything checks out! Continue...
+    if (validForm == true) {
+      var formContainer = $(".mc_embed_signup");
+      var formData = $(this).serialize(); // Format all info and get it ready for sendoff
+
+      // AJAX magic coming up...
+      $.ajax({
+        type: $(this).attr("method"),
+        url: $(this).attr("action"),
+        data: formData,
+        cache: false,
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        encode: true,
+        error: function(err) {
+          console.log("Uh, oh. There was an error:", err); // You broke something...
+        },
+        success: function(data) {
+          console.log("Success! Here is the data:", data); // Yay!
+        }
+      }) // All done! Let's show the user a success message:
+        .done(function(data) {
+          $(formContainer).hide(); // Hide the initial form
+
+          $(".success-message").show(); // Show the checkmark
+          $("svg").addClass("active"); // Start animation of checkmark
+        });
     }
-  })
-};
+
+    return; // No go on form...
+  }); // end of submit function
+});
